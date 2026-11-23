@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Open Secret Message</title>
+
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+    <main class="container">
+
+        <div class="tag">
+            ONE-TIME MESSAGE
+        </div>
+
+        <h1>Your <span>message.</span></h1>
+
+        <p class="intro">
+            This message will be deleted as soon as it is displayed.
+        </p>
+
+        <div id="message" class="message">
+            Opening message...
+        </div>
+
+        <p class="note">
+            This link can only be opened once.
+        </p>
+
+    </main>
+
+    <script>
+
+        // Get the token from the URL and request the message
+        async function openMessage() {
+
+            const token = window.location.pathname.split("/").pop();
+
+            const box = document.getElementById("message");
+
+            try {
+
+                const response = await fetch(
+                    "/message/" + encodeURIComponent(token)
+                );
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(
+                        data.detail || "Message unavailable."
+                    );
+                }
+
+                // Display the message safely as text
+                box.textContent = data.message;
+
+            } catch (error) {
+
+                box.textContent = error.message;
+
+            }
+        }
+
+        // Open the message when the page loads
+        openMessage();
+
+    </script>
+
+</body>
+</html>

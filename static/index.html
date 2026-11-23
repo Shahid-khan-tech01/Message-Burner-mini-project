@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Message Burner</title>
+
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+    <main class="container">
+
+        <div class="tag">
+            PRIVATE • ONE-TIME MESSAGE
+        </div>
+
+        <h1>Message <span>Burner.</span></h1>
+
+        <p class="intro">
+            Write a secret message. Create a private link.
+            Once it is opened, the message is permanently deleted.
+        </p>
+
+        <label for="message">Your secret message</label>
+
+        <textarea
+            id="message"
+            placeholder="Type your message here..."
+            rows="7">
+        </textarea>
+
+        <button id="createButton" onclick="createLink()">
+            Create one-time link
+        </button>
+
+        <div id="result" class="result"></div>
+
+        <p class="note">
+            Only share the generated link with the intended recipient.
+        </p>
+
+    </main>
+
+    <script>
+
+        // Create a one-time message link
+        async function createLink() {
+
+            const messageBox = document.getElementById("message");
+            const result = document.getElementById("result");
+            const button = document.getElementById("createButton");
+
+            if (!messageBox.value.trim()) {
+                result.textContent = "Please enter a message first.";
+                return;
+            }
+
+            button.disabled = true;
+            result.textContent = "Creating your link...";
+
+            try {
+
+                const response = await fetch("/create", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        message: messageBox.value
+                    })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.detail || "Could not create link.");
+                }
+
+                const fullLink = window.location.origin + data.link;
+
+                result.innerHTML = `
+                    <p>Your one-time link is ready:</p>
+                    <input id="shareLink" readonly>
+                    <button class="copy" onclick="copyLink()">
+                        Copy link
+                    </button>
+                `;
+
+                document.getElementById("shareLink").value = fullLink;
+
+                messageBox.value = "";
+
+            } catch (error) {
+
+                result.textContent = error.message;
+
+            } finally {
+
+                button.disabled = false;
+
+            }
+        }
+
+        // Copy generated link
+        async function copyLink() {
+
+            const link = document.getElementById("shareLink");
+
+            link.select();
+            link.setSelectionRange(0, 99999);
+
+            try {
+
+                await navigator.clipboard.writeText(link.value);
+
+                document.querySelector(".copy").textContent = "Copied!";
+
+            } catch {
+
+                document.execCommand("copy");
+
+                document.querySelector(".copy").textContent = "Copied!";
+
+            }
+        }
+
+    </script>
+
+</body>
+</html>
