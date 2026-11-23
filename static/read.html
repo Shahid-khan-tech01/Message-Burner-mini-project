@@ -1,74 +1,153 @@
+
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
+
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
 
     <title>Open Secret Message</title>
 
     <link rel="stylesheet" href="/static/style.css">
+
 </head>
+
 <body>
 
-    <main class="container">
+<main class="container">
+
+    <div class="topbar">
 
         <div class="tag">
             ONE-TIME MESSAGE
         </div>
 
-        <h1>Your <span>message.</span></h1>
+        <button
+            class="theme-toggle"
+            id="themeToggle"
+            onclick="toggleTheme()">
 
-        <p class="intro">
-            This message will be deleted as soon as it is displayed.
-        </p>
+            ☀️ Light
 
-        <div id="message" class="message">
-            Opening message...
-        </div>
+        </button>
 
-        <p class="note">
-            This link can only be opened once.
-        </p>
+    </div>
 
-    </main>
+    <h1>Your <span>message.</span></h1>
 
-    <script>
+    <p class="intro">
+        This message will be deleted as soon as it is displayed.
+    </p>
 
-        // Get the token from the URL and request the message
-        async function openMessage() {
+    <div id="message" class="message">
+        Opening message...
+    </div>
 
-            const token = window.location.pathname.split("/").pop();
+    <p class="note">
+        This link can only be opened once.
+    </p>
 
-            const box = document.getElementById("message");
+</main>
 
-            try {
 
-                const response = await fetch(
-                    "/message/" + encodeURIComponent(token)
-                );
+<script>
 
-                const data = await response.json();
+// Apply saved theme
+function applySavedTheme() {
 
-                if (!response.ok) {
-                    throw new Error(
-                        data.detail || "Message unavailable."
-                    );
-                }
+    const theme =
+        localStorage.getItem("messageBurnerTheme") || "dark";
 
-                // Display the message safely as text
-                box.textContent = data.message;
+    document.body.classList.toggle(
+        "light-theme",
+        theme === "light"
+    );
 
-            } catch (error) {
+    updateThemeButton();
 
-                box.textContent = error.message;
+}
 
-            }
+
+// Switch theme
+function toggleTheme() {
+
+    const isLight =
+        document.body.classList.toggle("light-theme");
+
+    localStorage.setItem(
+        "messageBurnerTheme",
+        isLight ? "light" : "dark"
+    );
+
+    updateThemeButton();
+
+}
+
+
+// Update theme button
+function updateThemeButton() {
+
+    const button =
+        document.getElementById("themeToggle");
+
+    const isLight =
+        document.body.classList.contains("light-theme");
+
+    button.textContent =
+        isLight ? "🌙 Dark" : "☀️ Light";
+
+}
+
+
+// Fetch and display message
+async function openMessage() {
+
+    const token =
+        window.location.pathname.split("/").pop();
+
+    const box =
+        document.getElementById("message");
+
+    try {
+
+        const response = await fetch(
+            "/message/" + encodeURIComponent(token)
+        );
+
+        const data = await response.json();
+
+        if (!response.ok) {
+
+            throw new Error(
+                data.detail || "Message unavailable."
+            );
+
         }
 
-        // Open the message when the page loads
-        openMessage();
+        box.textContent = data.message;
 
-    </script>
+    }
+
+    catch (error) {
+
+        box.textContent = error.message;
+
+        box.classList.add("message-error");
+
+    }
+
+}
+
+
+// Start reader page
+applySavedTheme();
+
+openMessage();
+
+</script>
 
 </body>
 </html>

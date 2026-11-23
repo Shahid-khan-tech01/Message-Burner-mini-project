@@ -1,5 +1,7 @@
+
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,125 +10,291 @@
 
     <link rel="stylesheet" href="/static/style.css">
 </head>
+
 <body>
 
-    <main class="container">
+<main class="container">
+
+    <div class="topbar">
 
         <div class="tag">
             PRIVATE • ONE-TIME MESSAGE
         </div>
 
-        <h1>Message <span>Burner.</span></h1>
-
-        <p class="intro">
-            Write a secret message. Create a private link.
-            Once it is opened, the message is permanently deleted.
-        </p>
-
-        <label for="message">Your secret message</label>
-
-        <textarea
-            id="message"
-            placeholder="Type your message here..."
-            rows="7">
-        </textarea>
-
-        <button id="createButton" onclick="createLink()">
-            Create one-time link
+        <button
+            class="theme-toggle"
+            id="themeToggle"
+            onclick="toggleTheme()">
+            ☀️ Light
         </button>
 
-        <div id="result" class="result"></div>
+    </div>
 
-        <p class="note">
-            Only share the generated link with the intended recipient.
-        </p>
+    <h1>Message <span>Burner.</span></h1>
 
-    </main>
+    <p class="intro">
+        Write a secret message. Create a private link.
+        Once it is opened, the message is permanently deleted.
+    </p>
 
-    <script>
+    <label for="message">Your secret message</label>
 
-        // Create a one-time message link
-        async function createLink() {
+    <textarea
+        id="message"
+        maxlength="1000"
+        rows="7"
+        placeholder="Type your message here..."
+        oninput="updateCounter()">
+    </textarea>
 
-            const messageBox = document.getElementById("message");
-            const result = document.getElementById("result");
-            const button = document.getElementById("createButton");
+    <div class="counter-row">
 
-            if (!messageBox.value.trim()) {
-                result.textContent = "Please enter a message first.";
-                return;
-            }
+        <span id="characterCount">
+            0 / 1000 characters
+        </span>
 
-            button.disabled = true;
-            result.textContent = "Creating your link...";
+        <span>Maximum 1000 characters</span>
 
-            try {
+    </div>
 
-                const response = await fetch("/create", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({
-                        message: messageBox.value
-                    })
-                });
+    <button
+        id="createButton"
+        class="primary-button"
+        onclick="createLink()">
 
-                const data = await response.json();
+        Create one-time link
 
-                if (!response.ok) {
-                    throw new Error(data.detail || "Could not create link.");
-                }
+    </button>
 
-                const fullLink = window.location.origin + data.link;
+    <div id="result" class="result"></div>
 
-                result.innerHTML = `
-                    <p>Your one-time link is ready:</p>
-                    <input id="shareLink" readonly>
-                    <button class="copy" onclick="copyLink()">
-                        Copy link
-                    </button>
-                `;
+    <p class="note">
+        Only share the generated link with the intended recipient.
+    </p>
 
-                document.getElementById("shareLink").value = fullLink;
+</main>
 
-                messageBox.value = "";
 
-            } catch (error) {
+<script>
 
-                result.textContent = error.message;
+// Apply saved theme
+function applySavedTheme() {
 
-            } finally {
+    const theme =
+        localStorage.getItem("messageBurnerTheme") || "dark";
 
-                button.disabled = false;
+    document.body.classList.toggle(
+        "light-theme",
+        theme === "light"
+    );
 
-            }
+    updateThemeButton();
+}
+
+
+// Switch dark and light themes
+function toggleTheme() {
+
+    const isLight =
+        document.body.classList.toggle("light-theme");
+
+    localStorage.setItem(
+        "messageBurnerTheme",
+        isLight ? "light" : "dark"
+    );
+
+    updateThemeButton();
+}
+
+
+// Update theme button
+function updateThemeButton() {
+
+    const button =
+        document.getElementById("themeToggle");
+
+    const isLight =
+        document.body.classList.contains("light-theme");
+
+    button.textContent =
+        isLight ? "🌙 Dark" : "☀️ Light";
+
+}
+
+
+// Character counter
+function updateCounter() {
+
+    const message =
+        document.getElementById("message");
+
+    const count = message.value.length;
+
+    const counter =
+        document.getElementById("characterCount");
+
+    counter.textContent =
+        count + " / 1000 characters";
+
+    counter.classList.toggle(
+        "near-limit",
+        count >= 900
+    );
+
+    counter.classList.toggle(
+        "at-limit",
+        count >= 1000
+    );
+
+}
+
+
+// Create message link
+async function createLink() {
+
+    const messageBox =
+        document.getElementById("message");
+
+    const result =
+        document.getElementById("result");
+
+    const button =
+        document.getElementById("createButton");
+
+    const message = messageBox.value.trim();
+
+    if (!message) {
+
+        result.textContent =
+            "Please enter a message first😥.";
+
+        return;
+    }
+
+    if (message.length > 1000) {
+
+        result.textContent =
+            "Maximum 1000 characters allowed.😡";
+
+        return;
+    }
+
+    button.disabled = true;
+
+    result.textContent =
+        "Creating your link...🤔";
+
+    try {
+
+        const response = await fetch("/create", {
+
+            method: "POST",
+
+            headers: {
+                "Content-Type": "application/json"
+            },
+
+            body: JSON.stringify({
+                message: message
+            })
+
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(
+                data.detail || "Could not create link.🙏"
+            );
         }
 
-        // Copy generated link
-        async function copyLink() {
+        const fullLink =
+            window.location.origin + data.link;
 
-            const link = document.getElementById("shareLink");
+        result.replaceChildren();
 
-            link.select();
-            link.setSelectionRange(0, 99999);
+        const text = document.createElement("p");
 
-            try {
+        text.textContent =
+            "Your one-time link is ready:😇";
 
-                await navigator.clipboard.writeText(link.value);
+        result.appendChild(text);
 
-                document.querySelector(".copy").textContent = "Copied!";
+        const input = document.createElement("input");
 
-            } catch {
+        input.id = "shareLink";
+        input.readOnly = true;
+        input.value = fullLink;
 
-                document.execCommand("copy");
+        result.appendChild(input);
 
-                document.querySelector(".copy").textContent = "Copied!";
+        const copyButton =
+            document.createElement("button");
 
-            }
-        }
+        copyButton.className = "copy-button";
+        copyButton.textContent = "Copy link";
 
-    </script>
+        copyButton.onclick = copyLink;
+
+        result.appendChild(copyButton);
+
+        messageBox.value = "";
+
+        updateCounter();
+
+    }
+
+    catch (error) {
+
+        result.textContent = error.message;
+
+    }
+
+    finally {
+
+        button.disabled = false;
+
+    }
+
+}
+
+
+// Copy link
+async function copyLink() {
+
+    const link =
+        document.getElementById("shareLink");
+
+    const button =
+        document.querySelector(".copy-button");
+
+    try {
+
+        await navigator.clipboard.writeText(link.value);
+
+    }
+
+    catch {
+
+        link.select();
+
+        link.setSelectionRange(0, 99999);
+
+        document.execCommand("copy");
+
+    }
+
+    button.textContent = "Copied!";
+
+}
+
+
+// Start page
+applySavedTheme();
+
+updateCounter();
+
+</script>
 
 </body>
 </html>
