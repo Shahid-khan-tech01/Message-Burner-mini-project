@@ -1,44 +1,30 @@
-
-<!DOCTYPE html>
-<html lang="en">
-
+    <!DOCTYPE html>
+    <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>Message Burner</title>
-
+      <title>Message Burner</title>
     <link rel="stylesheet" href="/static/style.css">
 </head>
-
-<body>
-
-<main class="container">
-
-    <div class="topbar">
-
+    <body>
+    <main class="container">
+       <div class="topbar">
         <div class="tag">
             PRIVATE • ONE-TIME MESSAGE
-        </div>
-
+           </div>
         <button
             class="theme-toggle"
             id="themeToggle"
             onclick="toggleTheme()">
             ☀️ Light
         </button>
-
-    </div>
-
-    <h1>Message <span>Burner.</span></h1>
-
+       </div>
+      <h1>Message <span>Burner.</span></h1>
     <p class="intro">
         Write a secret message. Create a private link.
         Once it is opened, the message is permanently deleted.
     </p>
-
-    <label for="message">Your secret message</label>
-
+      <label for="message">Your secret message</label>
     <textarea
         id="message"
         maxlength="1000"
@@ -46,256 +32,156 @@
         placeholder="Type your message here..."
         oninput="updateCounter()">
     </textarea>
-
-
-    <div class="counter-row">
-
+       <div class="counter-row">
         <span id="characterCount">
             0 / 1000 characters
         </span>
-
-        <span>Maximum 1000 characters</span>
-
-    </div>
-
+           <span>Maximum 1000 characters</span>
+       </div>
     <button
         id="createButton"
         class="primary-button"
         onclick="createLink()">
-
-        Create one-time link
-
-    </button>
-
-    <div id="result" class="result"></div>
-
-    <p class="note">
+            Create one-time link
+       </button>
+       <div id="result" class="result"></div>
+     <p class="note">
         Only share the generated link with the intended recipient.
     </p>
-
-</main>
-
-
-<script>
-
+    </main>
+    <script>
 // Apply saved theme
 function applySavedTheme() {
-
-    const theme =
-        localStorage.getItem("messageBurnerTheme") || "dark";
-
+     const theme =
+         localStorage.getItem("messageBurnerTheme") || "dark";
     document.body.classList.toggle(
         "light-theme",
         theme === "light"
-    );
-
+     );
     updateThemeButton();
-}
-
-
+    }
 // Switch dark and light themes
 function toggleTheme() {
-
-    const isLight =
+     const isLight =
         document.body.classList.toggle("light-theme");
-
-    localStorage.setItem(
+       localStorage.setItem(
         "messageBurnerTheme",
         isLight ? "light" : "dark"
-    );
-
-    updateThemeButton();
-}
-
+    );}
+updateThemeButton();
 
 // Update theme button
 function updateThemeButton() {
-
-    const button =
+        const button =
         document.getElementById("themeToggle");
-
-    const isLight =
+        const isLight =
         document.body.classList.contains("light-theme");
-
-    button.textContent =
+        button.textContent =
         isLight ? "🌙 Dark" : "☀️ Light";
-
-}
-
-
+    }
 // Character counter
 function updateCounter() {
-
-    const message =
+        const message =
         document.getElementById("message");
-
-    const count = message.value.length;
-
-    const counter =
+        const count = message.value.length;
+        const counter =
         document.getElementById("characterCount");
-
-    counter.textContent =
+        counter.textContent =
         count + " / 1000 characters";
-
-    counter.classList.toggle(
+        counter.classList.toggle(
         "near-limit",
         count >= 900
     );
-
-    counter.classList.toggle(
+        counter.classList.toggle(
         "at-limit",
         count >= 1000
     );
-
-}
-
-
+    }
 // Create message link
 async function createLink() {
-
-    const messageBox =
+       const messageBox =
         document.getElementById("message");
-
-    const result =
+       const result =
         document.getElementById("result");
-
-    const button =
+      const button =
         document.getElementById("createButton");
-
-    const message = messageBox.value.trim();
-
-    if (!message) {
-
+      const message = messageBox.value.trim();
+      if (!message) {
         result.textContent =
             "Please enter a message first😥.";
-
-        return;
+           return;
     }
-
-    if (message.length > 1000) {
-
+       if (message.length > 1000) {
         result.textContent =
             "Maximum 1000 characters allowed.😡";
-
-        return;
+          return;
     }
-
-    button.disabled = true;
-
-    result.textContent =
+      button.disabled = true;
+      result.textContent =
         "Creating your link...🤔";
-
-    try {
-
+      try {
         const response = await fetch("/create", {
-
-            method: "POST",
-
+              method: "POST",
             headers: {
                 "Content-Type": "application/json"
             },
-
-            body: JSON.stringify({
+              body: JSON.stringify({
                 message: message
             })
-
-        });
-
-        const data = await response.json();
-
+           });
+          const data = await response.json();
         if (!response.ok) {
             throw new Error(
                 data.detail || "Could not create link.🙏"
-            );
-        }
-
+            );   }
         const fullLink =
-            window.location.origin + data.link;
-
-        result.replaceChildren();
-
-        const text = document.createElement("p");
-
-        text.textContent =
+          window.location.origin + data.link;
+            result.replaceChildren();
+         const text = document.createElement("p");
+            text.textContent =
             "Your one-time link is ready:😇";
-
-        result.appendChild(text);
-
-        const input = document.createElement("input");
-
+          result.appendChild(text);
+          const input = document.createElement("input");
         input.id = "shareLink";
         input.readOnly = true;
         input.value = fullLink;
-
-        result.appendChild(input);
-
+          result.appendChild(input);
         const copyButton =
             document.createElement("button");
-
-        copyButton.className = "copy-button";
-        copyButton.textContent = "Copy link";
-
-        copyButton.onclick = copyLink;
-
-        result.appendChild(copyButton);
-
-        messageBox.value = "";
-
+            copyButton.className = "copy-button";
+            copyButton.textContent = "Copy link";
+            copyButton.onclick = copyLink;
+            result.appendChild(copyButton);
+            messageBox.value = "";
         updateCounter();
-
-    }
-
+      }
     catch (error) {
-
-        result.textContent = error.message;
-
-    }
-
-    finally {
-
-        button.disabled = false;
+          result.textContent = error.message;
 
     }
-
-}
-
-
+      finally {
+           button.disabled = false;
+    }
+    }
 // Copy link
 async function copyLink() {
-
-    const link =
+      const link =
         document.getElementById("shareLink");
-
-    const button =
+      const button =
         document.querySelector(".copy-button");
-
-    try {
-
+       try {
         await navigator.clipboard.writeText(link.value);
-
-    }
-
-    catch {
-
+       }
+       catch {
         link.select();
-
-        link.setSelectionRange(0, 99999);
-
+           link.setSelectionRange(0, 99999);
         document.execCommand("copy");
-
-    }
-
+       }
     button.textContent = "Copied!";
-
-}
-
-
+    }
 // Start page
-applySavedTheme();
-
-updateCounter();
-
-</script>
-
-</body>
+    applySavedTheme();
+    updateCounter();
+    </script>
+    </body>
 </html>
