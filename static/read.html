@@ -1,92 +1,181 @@
-    <!DOCTYPE html>
-    <html lang="en">
-<head>
-        <meta charset="UTF-8">
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1.0">
-      <title>Open Secret Message</title>
-    <link rel="stylesheet" href="/static/style.css">
-    </head>
-    <body>
-    <main class="container">
-      <div class="topbar">
-        <div class="tag">
-            ONE-TIME MESSAGE
-       </div>
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <meta name="referrer" content="no-referrer" />
+
+    <title>Reveal Message | Message Burner</title>
+
+    <link rel="stylesheet" href="/static/style.css" />
+
+    <script src="/static/app.js" defer></script>
+  </head>
+
+  <body>
+    <main>
+      <!-- Professional logo and theme -->
+      <header>
+        <a href="/" class="brand-logo">
+          <svg class="logo-icon" viewBox="0 0 64 64" aria-hidden="true">
+            <defs>
+              <linearGradient
+                id="fireGradient"
+                x1="0%"
+                y1="0%"
+                x2="100%"
+                y2="100%"
+              >
+                <stop offset="0%" stop-color="#ffb347" />
+
+                <stop offset="100%" stop-color="#f43f5e" />
+              </linearGradient>
+            </defs>
+
+            <rect
+              x="1"
+              y="1"
+              width="62"
+              height="62"
+              rx="17"
+              fill="rgba(255,120,70,0.12)"
+            />
+
+            <path
+              d="M33 7 C36 22 49 24 49 39
+                             C49 50 41 56 31 56
+                             C19 56 12 48 15 37
+                             C17 29 24 25 24 17
+                             C29 20 30 26 30 29
+                             C37 22 34 15 33 7Z"
+              fill="url(#fireGradient)"
+            />
+
+            <rect x="21" y="32" width="24" height="15" rx="4" fill="#fff5e8" />
+
+            <path
+              d="M24 35 L33 41 L42 35"
+              stroke="#e85c39"
+              stroke-width="2"
+              stroke-linecap="round"
+              fill="none"
+            />
+          </svg>
+
+          <div class="brand-text">
+            <span class="brand-name"> Message Burner </span>
+
+            <span class="brand-tagline"> Share. Reveal. Disappear. </span>
+          </div>
+        </a>
+
         <button
-            class="theme-toggle"
-            id="themeToggle"
-            onclick="toggleTheme()">
-             ☀️ Light
+          type="button"
+          id="themeToggle"
+          class="theme-toggle"
+          onclick="toggleTheme()"
+        >
+          <span id="themeIcon">☀</span>
+
+          <span id="themeText">Light Mode</span>
         </button>
-     </div>
-   <h1>Your <span>message.</span></h1>
-    <p class="intro">
-        This message will be deleted as soon as it is displayed.
-    </p>
-      <div id="message" class="message">
-        Opening message...
-    </div>
-       <p class="note">
-        This link can only be opened once.
-    </p>
+      </header>
+
+      <!-- Main heading -->
+      <section class="hero">
+        <span class="eyebrow"> PRIVATE DELIVERY </span>
+
+        <h1>
+          A message<br />
+          <em>just for you.</em>
+        </h1>
+
+        <p>
+          This message has limited access. Revealing it will use one permitted
+          view.
+        </p>
+      </section>
+
+      <!-- Reveal button -->
+      <button class="primary" id="reveal">Reveal Message / Image</button>
+
+      <!-- Status message -->
+      <p id="status" role="status"></p>
+
+      <!-- Revealed content -->
+      <section id="content" hidden>
+        <h2>Your private message</h2>
+
+        <p id="message" class="message"></p>
+
+        <img id="photo" hidden alt="Shared image" />
+
+        <button class="remove" id="close">Close and Hide Content</button>
+      </section>
+
+      <!-- Footer -->
+      <footer>
+        <a href="/"> Create Your Own Message → </a>
+      </footer>
     </main>
+
     <script>
-// Apply saved theme
-    function applySavedTheme() {
-    const theme =
-        localStorage.getItem("messageBurnerTheme") || "dark";
-       document.body.classList.toggle(
-        "light-theme",
-        theme === "light"
-    );
-    updateThemeButton();    
-}   
-// Switch theme
-function toggleTheme() {    
-    const isLight =
-        document.body.classList.toggle("light-theme");  
-        localStorage.setItem(
-        "messageBurnerTheme",
-        isLight ? "light" : "dark"
-    );
-    updateThemeButton();    
-}   
-// Update theme button
-function updateThemeButton() {  
-    const button =
-        document.getElementById("themeToggle"); 
-    const isLight =
-        document.body.classList.contains("light-theme");
-    button.textContent =    
-        isLight ? "🌙 Dark" : "☀️ Light";
-}   
-// Fetch and display message
-async function openMessage() {  
-    const token =
-        window.location.pathname.split("/").pop();  
-    const box =
-        document.getElementById("message"); 
-    try {   
-        const response = await fetch(
-            "/message/" + encodeURIComponent(token)
-        );  
-        const data = await response.json(); 
-        if (!response.ok) { 
-            throw new Error(
-                data.detail || "Message unavailable."
-            );  
-        }   
-        box.textContent = data.message; 
-    }   
-    catch (error) { 
-        box.textContent = error.message;    
-        box.classList.add("message-error"); 
-    }   
-}   
-// Start reader page
-applySavedTheme();  
-openMessage();  
-</script>   
-</body>
+      const $ = (id) => document.getElementById(id);
+
+      // Reveal message and image
+      $("reveal").onclick = async function () {
+        $("reveal").disabled = true;
+
+        $("status").textContent = "Opening your message...";
+
+        try {
+          const token = location.pathname.split("/").pop();
+
+          const response = await fetch("/message/" + token, {
+            method: "POST",
+            cache: "no-store",
+          });
+
+          const data = await response.json();
+
+          if (!response.ok) {
+            throw Error(data.detail);
+          }
+
+          // Display text message
+          $("message").textContent = data.message;
+
+          $("message").hidden = !data.message;
+
+          // Display image
+          if (data.image) {
+            $("photo").src = data.image;
+
+            $("photo").hidden = false;
+          }
+
+          $("content").hidden = false;
+
+          $("reveal").hidden = true;
+
+          $("status").textContent = "Remaining views: " + data.remaining_reads;
+        } catch (error) {
+          $("status").textContent = error.message;
+        }
+      };
+
+      // Close revealed content
+      $("close").onclick = function () {
+        $("photo").removeAttribute("src");
+
+        $("message").textContent = "";
+
+        $("content").hidden = true;
+
+        $("status").textContent = "Content has been hidden.";
+      };
+    </script>
+  </body>
 </html>

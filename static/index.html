@@ -1,187 +1,399 @@
-    <!DOCTYPE html>
-    <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>Message Burner</title>
-    <link rel="stylesheet" href="/static/style.css">
-</head>
-    <body>
-    <main class="container">
-       <div class="topbar">
-        <div class="tag">
-            PRIVATE • ONE-TIME MESSAGE
-           </div>
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Message Burner</title>
+
+    <link rel="stylesheet" href="/static/style.css" />
+
+    <script src="/static/app.js" defer></script>
+  </head>
+
+  <body>
+    <main>
+      <!-- Professional logo and theme button -->
+      <header>
+        <a href="/" class="brand-logo">
+          <svg class="logo-icon" viewBox="0 0 64 64" aria-hidden="true">
+            <defs>
+              <linearGradient
+                id="fireGradient"
+                x1="0%"
+                y1="0%"
+                x2="100%"
+                y2="100%"
+              >
+                <stop offset="0%" stop-color="#ffb347" />
+
+                <stop offset="100%" stop-color="#f43f5e" />
+              </linearGradient>
+            </defs>
+
+            <rect
+              x="1"
+              y="1"
+              width="62"
+              height="62"
+              rx="17"
+              fill="rgba(255,120,70,0.12)"
+            />
+
+            <!-- Flame -->
+            <path
+              d="M33 7 C36 22 49 24 49 39
+                             C49 50 41 56 31 56
+                             C19 56 12 48 15 37
+                             C17 29 24 25 24 17
+                             C29 20 30 26 30 29
+                             C37 22 34 15 33 7Z"
+              fill="url(#fireGradient)"
+            />
+
+            <!-- Message envelope -->
+            <rect x="21" y="32" width="24" height="15" rx="4" fill="#fff5e8" />
+
+            <path
+              d="M24 35 L33 41 L42 35"
+              stroke="#e85c39"
+              stroke-width="2"
+              stroke-linecap="round"
+              fill="none"
+            />
+          </svg>
+
+          <div class="brand-text">
+            <span class="brand-name"> Message Burner </span>
+
+            <span class="brand-tagline"> Share. Reveal. Disappear. </span>
+          </div>
+        </a>
+
+        <!-- Dynamic theme button -->
         <button
-            class="theme-toggle"
-            id="themeToggle"
-            onclick="toggleTheme()">
-            ☀️ Light
+          type="button"
+          id="themeToggle"
+          class="theme-toggle"
+          onclick="toggleTheme()"
+        >
+          <span id="themeIcon">☀</span>
+
+          <span id="themeText">Light Mode</span>
         </button>
-       </div>
-      <h1>Message <span>Burner.</span></h1>
-    <p class="intro">
-        Write a secret message. Create a private link.
-        Once it is opened, the message is permanently deleted.
-    </p>
-      <label for="message">Your secret message</label>
-    <textarea
-        id="message"
-        maxlength="1000"
-        rows="7"
-        placeholder="Type your message here..."
-        oninput="updateCounter()">
-    </textarea>
-       <div class="counter-row">
-        <span id="characterCount">
-            0 / 1000 characters
-        </span>
-           <span>Maximum 1000 characters</span>
-       </div>
-    <button
-        id="createButton"
-        class="primary-button"
-        onclick="createLink()">
-            Create one-time link
-       </button>
-       <div id="result" class="result"></div>
-     <p class="note">
-        Only share the generated link with the intended recipient.
-    </p>
+      </header>
+
+      <!-- Main heading -->
+      <section class="hero">
+        <span class="eyebrow"> PRIVATE SHARING </span>
+
+        <h1>
+          Share it.<br />
+          <em>Let it disappear.</em>
+        </h1>
+
+        <p>Your messages. Your images. Your limits.</p>
+      </section>
+
+      <!-- Message form -->
+      <form id="form">
+        <label for="message"> Your message </label>
+
+        <textarea
+          id="message"
+          name="message"
+          maxlength="1000"
+          placeholder="Write something private..."
+        ></textarea>
+
+        <!-- Character counter -->
+        <small id="counter">0 / 1000</small>
+
+        <!-- Single image selection box -->
+        <label class="upload" for="image">
+          <span class="upload-icon">＋</span>
+
+          <strong>Attach an image</strong>
+
+          <small> PNG, JPEG or WebP · Maximum 5 MB </small>
+        </label>
+
+        <!-- Hidden file input -->
+        <input
+          type="file"
+          id="image"
+          name="image"
+          accept="image/png,image/jpeg,image/webp"
+        />
+
+        <!-- Image preview -->
+        <div id="previewBox" hidden>
+          <img id="preview" alt="Selected image" />
+
+          <p id="fileName"></p>
+
+          <button type="button" class="remove" onclick="removeImage()">
+            Remove Image
+          </button>
+        </div>
+
+        <!-- Time limit and number of users -->
+        <div class="columns">
+          <div>
+            <label for="expiry"> Expires after </label>
+
+            <select id="expiry" name="expiration_minutes">
+              <option value="5">5 Minutes</option>
+
+              <option value="15">15 Minutes</option>
+
+              <option value="30">30 Minutes</option>
+
+              <option value="60">1 Hour</option>
+
+              <option value="720">12 Hours</option>
+
+              <option value="1440" selected>24 Hours</option>
+
+              <option value="10080">7 Days</option>
+            </select>
+
+            <small> Choose message lifetime </small>
+          </div>
+
+          <!-- Number of users -->
+          <div>
+            <label for="views"> Number of users </label>
+
+            <input
+              type="number"
+              id="views"
+              name="max_reads"
+              min="1"
+              max="20"
+              value="1"
+              required
+            />
+
+            <small> Maximum 20 users </small>
+          </div>
+        </div>
+
+        <!-- Generate link button -->
+        <button class="primary" id="create" type="submit">
+          Generate Private Link →
+        </button>
+      </form>
+
+      <!-- Status message -->
+      <p id="status" role="status"></p>
+
+      <!-- Generated link -->
+      <section id="result" hidden>
+        <h2>Your link is ready!</h2>
+
+        <p id="linkInfo"></p>
+
+        <input id="link" readonly aria-label="Generated link" />
+
+        <!-- Sharing options -->
+        <div class="shares">
+          <button onclick="copyLink()">Copy Link</button>
+
+          <button class="whatsapp" onclick="share('wa')">WhatsApp</button>
+
+          <button class="email" onclick="share('email')">Email</button>
+
+          <button class="sms" onclick="share('sms')">SMS</button>
+
+          <button onclick="nativeShare()">More</button>
+        </div>
+      </section>
+
+      <!-- Footer -->
+      <footer>
+        <span class="footer-dot"></span>
+
+        Limited Access · Private Sharing
+
+        <br />
+
+        Message Burner © 2026
+      </footer>
     </main>
+
     <script>
-// Apply saved theme
-function applySavedTheme() {
-     const theme =
-         localStorage.getItem("messageBurnerTheme") || "dark";
-    document.body.classList.toggle(
-        "light-theme",
-        theme === "light"
-     );
-    updateThemeButton();
-    }
-// Switch dark and light themes
-function toggleTheme() {
-     const isLight =
-        document.body.classList.toggle("light-theme");
-       localStorage.setItem(
-        "messageBurnerTheme",
-        isLight ? "light" : "dark"
-    );}
-updateThemeButton();
+      const $ = (id) => document.getElementById(id);
 
-// Update theme button
-function updateThemeButton() {
-        const button =
-        document.getElementById("themeToggle");
-        const isLight =
-        document.body.classList.contains("light-theme");
-        button.textContent =
-        isLight ? "🌙 Dark" : "☀️ Light";
-    }
-// Character counter
-function updateCounter() {
-        const message =
-        document.getElementById("message");
-        const count = message.value.length;
-        const counter =
-        document.getElementById("characterCount");
-        counter.textContent =
-        count + " / 1000 characters";
-        counter.classList.toggle(
-        "near-limit",
-        count >= 900
-    );
-        counter.classList.toggle(
-        "at-limit",
-        count >= 1000
-    );
-    }
-// Create message link
-async function createLink() {
-       const messageBox =
-        document.getElementById("message");
-       const result =
-        document.getElementById("result");
-      const button =
-        document.getElementById("createButton");
-      const message = messageBox.value.trim();
-      if (!message) {
-        result.textContent =
-            "Please enter a message first😥.";
-           return;
-    }
-       if (message.length > 1000) {
-        result.textContent =
-            "Maximum 1000 characters allowed.😡";
-          return;
-    }
-      button.disabled = true;
-      result.textContent =
-        "Creating your link...🤔";
-      try {
-        const response = await fetch("/create", {
-              method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-              body: JSON.stringify({
-                message: message
-            })
-           });
-          const data = await response.json();
-        if (!response.ok) {
-            throw new Error(
-                data.detail || "Could not create link.🙏"
-            );   }
-        const fullLink =
-          window.location.origin + data.link;
-            result.replaceChildren();
-         const text = document.createElement("p");
-            text.textContent =
-            "Your one-time link is ready:😇";
-          result.appendChild(text);
-          const input = document.createElement("input");
-        input.id = "shareLink";
-        input.readOnly = true;
-        input.value = fullLink;
-          result.appendChild(input);
-        const copyButton =
-            document.createElement("button");
-            copyButton.className = "copy-button";
-            copyButton.textContent = "Copy link";
-            copyButton.onclick = copyLink;
-            result.appendChild(copyButton);
-            messageBox.value = "";
-        updateCounter();
+      let previewUrl = null;
+
+      // Character counter
+      function updateCounter() {
+        const length = $("message").value.length;
+
+        $("counter").textContent = length + " / 1000";
+
+        $("counter").style.color = length >= 900 ? "#ef4444" : "";
       }
-    catch (error) {
-          result.textContent = error.message;
 
-    }
-      finally {
-           button.disabled = false;
-    }
-    }
-// Copy link
-async function copyLink() {
-      const link =
-        document.getElementById("shareLink");
-      const button =
-        document.querySelector(".copy-button");
-       try {
-        await navigator.clipboard.writeText(link.value);
-       }
-       catch {
-        link.select();
-           link.setSelectionRange(0, 99999);
-        document.execCommand("copy");
-       }
-    button.textContent = "Copied!";
-    }
-// Start page
-    applySavedTheme();
-    updateCounter();
+      $("message").oninput = updateCounter;
+
+      updateCounter();
+
+      // Image selection and preview
+      $("image").onchange = function () {
+        if (previewUrl) {
+          URL.revokeObjectURL(previewUrl);
+
+          previewUrl = null;
+        }
+
+        const file = $("image").files[0];
+
+        $("previewBox").hidden = true;
+
+        if (!file) {
+          return;
+        }
+
+        if (file.size > 5 * 1024 * 1024) {
+          alert("Image must be under 5 MB");
+
+          removeImage();
+
+          return;
+        }
+
+        const allowedTypes = ["image/png", "image/jpeg", "image/webp"];
+
+        if (!allowedTypes.includes(file.type)) {
+          alert("Choose PNG, JPEG or WebP");
+
+          removeImage();
+
+          return;
+        }
+
+        previewUrl = URL.createObjectURL(file);
+
+        $("preview").src = previewUrl;
+
+        $("fileName").textContent = file.name;
+
+        $("previewBox").hidden = false;
+      };
+
+      // Remove selected image
+      function removeImage() {
+        $("image").value = "";
+
+        $("preview").removeAttribute("src");
+
+        $("previewBox").hidden = true;
+
+        $("fileName").textContent = "";
+
+        if (previewUrl) {
+          URL.revokeObjectURL(previewUrl);
+
+          previewUrl = null;
+        }
+      }
+
+      // Generate private link
+      $("form").onsubmit = async function (event) {
+        event.preventDefault();
+
+        $("create").disabled = true;
+
+        $("result").hidden = true;
+
+        $("status").textContent = "Generating your private link...";
+
+        try {
+          const response = await fetch("/create", {
+            method: "POST",
+
+            body: new FormData(event.target),
+          });
+
+          const data = await response.json();
+
+          if (!response.ok) {
+            throw Error(
+              typeof data.detail === "string" ? data.detail : "Invalid input",
+            );
+          }
+
+          $("link").value = location.origin + data.link;
+
+          const expiryDate = new Date(data.expires * 1000);
+
+          $("linkInfo").textContent =
+            "Allowed views: " +
+            data.max_reads +
+            " | Expires: " +
+            expiryDate.toLocaleString();
+
+          $("result").hidden = false;
+
+          $("status").textContent = "Link generated successfully!";
+
+          $("result").scrollIntoView({
+            behavior: "smooth",
+          });
+        } catch (error) {
+          $("status").textContent = error.message;
+        } finally {
+          $("create").disabled = false;
+        }
+      };
+
+      // Copy generated link
+      async function copyLink() {
+        try {
+          await navigator.clipboard.writeText($("link").value);
+
+          $("status").textContent = "Link copied successfully!";
+        } catch {
+          $("link").select();
+
+          $("status").textContent = "Please copy the selected link manually.";
+        }
+      }
+
+      // Sharing options
+      function share(type) {
+        const url = encodeURIComponent($("link").value);
+
+        if (type === "wa") {
+          window.open("https://wa.me/?text=" + url, "_blank", "noopener");
+        } else if (type === "email") {
+          location.href = "mailto:?subject=Private%20Message&body=" + url;
+        } else if (type === "sms") {
+          location.href = "sms:?body=" + url;
+        }
+      }
+
+      // Mobile sharing menu
+      async function nativeShare() {
+        if (navigator.share) {
+          try {
+            await navigator.share({
+              title: "Message Burner",
+
+              url: $("link").value,
+            });
+          } catch (error) {
+            if (error.name !== "AbortError") {
+              copyLink();
+            }
+          }
+        } else {
+          copyLink();
+        }
+      }
     </script>
-    </body>
+  </body>
 </html>
